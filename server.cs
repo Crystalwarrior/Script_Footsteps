@@ -400,25 +400,34 @@ function serverCmdClearMaterial(%this, %material, %all)
 		return;
 	}
 
-	%name = $pref::server::FS::materialName[$FS::SoundIndex[%material]];
-	%colors = $pref::server::FS::materialColors[$FS::SoundIndex[%material]];
+	%index = $pref::server::FS::materialIndex[%material];
+	%name = $pref::server::FS::materialName[%index];
+	%colors = $pref::server::FS::materialColors[%index];
 	if (%name $= %material)
 	{
 		if (%all == 1)
 		{
-			$pref::server::FS::materialColors[$FS::SoundIndex[%material]] = "";
+			$pref::server::FS::materialColors[%index] = "";
 			messageClient(%this,'',"\c2Succesfully cleared all associated colors for material \c3"@ %material @"\c2.");
 		}
 		else
 		{
-			for (%i = 0; %i < getFieldCount(%colors); %a++)
+			for (%i = 0; %i < getFieldCount(%colors); %i++)
 			{
 				if (getField(%colors, %i) $= %color)
 				{
 					messageClient(%this,'',"\c2Succesfully cleared selected color <color:" @ rgbToHex(vectorScale(%color, 255)) @ ">" @ %color @"\c2 for material \c3"@ %material @"\c2.");
-					$pref::server::FS::materialColors[$FS::SoundIndex[%material]] = removeField(%colors, %i);
+					$pref::server::FS::materialColors[%index] = removeField(%colors, %i);
+					if(getFieldCount($pref::server::FS::materialColors[%index]) <= 0)
+					{
+						$pref::server::FS::materialIndex[$pref::server::FS::materialName[%index]] = "";
+						$pref::server::FS::materialName[%index] = "";
+						$pref::server::FS::materialColors[%index] = "";
+					}
+					return;
 				}
 			}
+			messageClient(%this,'',"Material\c2: " @ %material @ "\c0 doesn't have that color set!");
 		}
 		return;
 	}
@@ -486,13 +495,25 @@ function serverCmdListMaterialColors(%this, %material)
 	{
 		%name = $pref::server::FS::materialName[%i];
 		%colors = $pref::server::FS::materialColors[%i];
-		if (%name $= %material || %material $= "ALL")
+
+		if (%name !$= "" && (%name $= %material || %material $= "ALL"))
 		{
+			%matcnt += getFieldCount(%colors);
 			%text[%count++] = "\c2Material \c3" @ %name @ "\c2 colors:";
 			%text[%count++] = "  \c3::";
+			%c = 0;
 			for (%a = 0; %a < getFieldCount(%colors); %a++)
 			{
-				%text[%count] = %text[%count] @ "\c2 / " @ "<color:" @ rgbToHex(vectorScale(getField(%colors, %a), 255)) @ ">" @ getField(%colors, %a);
+				if(%c >= 4)
+				{
+					%c = 0;
+					%text[%count++] = "  \c3::";
+				}
+				%c++;
+				%colorfield = getField(%colors, %a);
+				%fl = 3;
+				%colorfinal = mFloatLength(getWord(%colorfield, 0), %fl) SPC mFloatLength(getWord(%colorfield, 1), %fl) SPC mFloatLength(getWord(%colorfield, 2), %fl);
+				%text[%count] = %text[%count] @ "\c2 / " @ "<color:" @ rgbToHex(vectorScale(%colorfield, 255)) @ ">" @ %colorfinal;
 			}
 		}
 	}
@@ -500,7 +521,7 @@ function serverCmdListMaterialColors(%this, %material)
 	{		
 		messageClient(%this, '', %text[%i]);
 	}
-	messageClient(%this, '', "\c2Listed \c3" @ (%count || 0) @ "\c2 materials!");
+	messageClient(%this, '', "\c2Listed \c3" @ (%matcnt || 0) @ "\c2 materials!");
 }
 
 function serverCmdFootstepsHelp(%this)
