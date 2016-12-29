@@ -1,5 +1,7 @@
 exec("./colors.cs");
 
+//PROTIP: EVERYTHING NAMED stupid_dirt1.wav WILL HAVE THE PRE-_ CHARACTER STUFFS STRIPPED OUT.
+
 $FOOTSTEPS_INTERVAL = 300;
 $FOOTSTEPS_SWIMINTERVAL = 2000;
 $FOOTSTEPS_MIN_LANDING = -1.5;
@@ -311,6 +313,8 @@ function loadFootstepSounds()
 	for ( %file = findFirstFile( %pattern ); %file !$= ""; %file = findNextFile( %pattern ) )
 	{
 		%base = fileBase( %file );
+		if((%char = strchr(%base, "_")) !$= "")
+			%base = getSubStr(%char, 1, strlen(%char));
 		%name = "footstepSound_" @ %base;
 
 		echo(%name);
