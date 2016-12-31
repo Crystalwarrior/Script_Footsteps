@@ -321,6 +321,7 @@ function loadFootstepSounds()
 
 		if ( !isObject( %name ) )
 		{
+			//Reason why the datalock is not outside the function is because we are CREATING a new datablock for every new footstep
 			datablock audioProfile( genericFootstepSound )
 			{
 				description = "audioClosest3D";
@@ -366,7 +367,7 @@ function fxDTSBrick::setMaterial( %this, %idx )
 	echo(%idx);
 }
 
-schedule(0, 0, loadFootstepSounds);
+loadFootstepSounds();
 
 //ServerCmdStuff below
 //vvvvvvvvvvvvvvvvvvv
